@@ -1,7 +1,9 @@
+
 const MINIMAL_POWER = 99.97; // 5 Ethereum
 let HEAD_NODE = 0; // Le noeud maitre => 0 pour la prémière fois
 let VOTING_END = false;
 
+// Instanciate a new web3 object
 web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:7545'));
 abi = JSON.parse(
   '[{"constant":false,"inputs":[{"name":"candidate","type":"bytes32"}],"name":"totalVotesFor","outputs":[{"name":"","type":"uint8"}],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"candidate","type":"bytes32"}],"name":"validCandidate","outputs":[{"name":"","type":"bool"}],"payable":false,"type":"function"},{"constant":true,"inputs":[{"name":"","type":"bytes32"}],"name":"votesReceived","outputs":[{"name":"","type":"uint8"}],"payable":false,"type":"function"},{"constant":true,"inputs":[{"name":"x","type":"bytes32"}],"name":"bytes32ToString","outputs":[{"name":"","type":"string"}],"payable":false,"type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"candidateList","outputs":[{"name":"","type":"bytes32"}],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"candidate","type":"bytes32"}],"name":"voteForCandidate","outputs":[],"payable":false,"type":"function"},{"constant":true,"inputs":[],"name":"contractOwner","outputs":[{"name":"","type":"address"}],"payable":false,"type":"function"},{"inputs":[{"name":"candidateNames","type":"bytes32[]"}],"payable":false,"type":"constructor"}]'
@@ -119,22 +121,33 @@ function fetchCandidatesStatistics() {
   return true;
 }
 
+// On deocument load function
 $(document).ready(function() {
-  // La balance du premier compte
-  web3.eth.getBalance(web3.eth.accounts[HEAD_NODE], function(error, wei) {
-    if (!error) {
-      var balance = web3.fromWei(wei, 'ether').toString();
-      if (balance < MINIMAL_POWER) {
-        let oldHeadNode = HEAD_NODE;
-        setHeadNone(() => {
-          if (oldHeadNode != HEAD_NODE) {
-            console.log('HEAD NODE CHANGED TO ' + HEAD_NODE);
-          }
-          fetchCandidatesStatistics();
-        });
-      } else {
-        fetchCandidatesStatistics();
-      }
-    }
-  });
+
+  // Balance of HEAD_NONE account
+  // web3.eth.getBalance(web3.eth.accounts[HEAD_NODE], function(error, wei) {
+  //   if (!error) {
+  //     var balance = web3.fromWei(wei, 'ether').toString();
+  //     if (balance < MINIMAL_POWER) {
+  //       let oldHeadNode = HEAD_NODE;
+  //       setHeadNone(() => {
+  //         if (oldHeadNode != HEAD_NODE) {
+  //           console.log('HEAD NODE CHANGED TO ' + HEAD_NODE);
+  //         }
+  //         fetchCandidatesStatistics();
+  //       });
+  //     } else {
+  //       fetchCandidatesStatistics();
+  //     }
+  //   }
+  // });
+
+  // Check cookie if user is connected
+  let email  = Cookies.get('email');
+  let username = Cookies.get('username')
+  let password = Cookies.get('password');
+  
+  console.log(email);
+  console.log(username);
+  console.log(password);
 });
