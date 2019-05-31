@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="./static/css/bootstrap.min.css" />
+
+  <!-- Fontawesome CSS -->
+  <link rel="stylesheet" href="./static/css/all.min.css" />
+
+  <!-- Sweetalert CSS -->
+  <link rel="stylesheet" href="./static/css/sweetalert2.min.css" />
+
+  <link rel="icon" href="./static/images/41503743-security-guard-logo-design-vector-security-protection-shield-symbol-secure-shield-icon-vector-privac.jpg" />
+
+  <title>Application Decentralisée</title>
+</head>
+
+<body class="container">
+  <h1 class="text-center mt-4 mb-4">Application du vote decentralisée</h1>
+
+  
+  <div class="table-responsive">
+    <table class="table table-bordered table-striped">
+      <thead align="center">
+        <tr>
+          <th scope="col">Candidat</th>
+          <th scope="col">Votes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td scope="row">Rama</td>
+          <td id="candidate-1"></td>
+        </tr>
+        <tr>
+          <td scope="row">Nick</td>
+          <td id="candidate-2"></td>
+        </tr>
+        <tr>
+          <td scope="row">Jose</td>
+          <td id="candidate-3"></td>
+        </tr>
+        <tr>
+          <td scope="row">Navin</td>
+          <td id="candidate-4"></td>
+        </tr>
+        <tr>
+          <td scope="row">Mike</td>
+          <td id="candidate-5"></td>
+        </tr>
+        <tr>
+          <td scope="row">Pamela</td>
+          <td id="candidate-6"></td>
+        </tr>
+        <tr>
+          <td scope="row">Thierry</td>
+          <td id="candidate-7"></td>
+        </tr>
+        <tr>
+          <td scope="row">Susanne</td>
+          <td id="candidate-8"></td>
+        </tr>
+        <tr>
+          <td scope="row">Matilda</td>
+          <td id="candidate-9"></td>
+        </tr>
+        <tr>
+          <td scope="row">Angelique</td>
+          <td id="candidate-10"></td>
+        </tr>
+        <tr>
+          <td scope="row">Marcelle</th>
+          <td id="candidate-11"></td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div>
+
+  <div class="form-group">
+    <label for="candidate">Nom du candidat: </label>
+    <input type="email" class="form-control" id="candidate" aria-describedby="candidatHelp"
+      placeholder="Nom du candidat...">
+    <small id="candidatHelp" class="form-text text-muted">Taper le nom du candidat</small>
+  </div>
+
+  <button onclick="voteForCandidate()" id="btn-voter" class="btn btn-primary mb-5">
+    <i class="fas fa-person-booth"></i> Voter
+  </button>
+</body>
+<script src="./static/js/web3.js"></script>
+<script src="./static/js/jquery.min.js"></script>
+<script src="./static/js/bootstrap.min.js"></script>
+<script src="./static/js/all.min.js"></script>
+<script src="./static/js/sweetalert2.all.min.js"></script>
+<script src="./index.js"></script>
+<script src="./static/js/custom.js"></script>
+
+</html>

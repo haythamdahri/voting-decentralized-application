@@ -1,0 +1,16 @@
+{
+  "name": "voting-decentralized-application",
+  "version": "1.0.0",
+  "description": "Voting decentralized application",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "author": "HAYTHAM DAHRI",
+  "license": "ISC",
+  "dependencies": {
+    "solc": "^0.4.26",
+    "web3": "^0.20.7"
+  }
+}
