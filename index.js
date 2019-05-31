@@ -1,6 +1,6 @@
-const MINIMAL_POWER = 5; // 5 Ethereum
-const HEAD_NODE = 0 // Le noeud maitre => 0 pour la prémière fois
-
+const MINIMAL_POWER = 99.97; // 5 Ethereum
+let HEAD_NODE = 0; // Le noeud maitre => 0 pour la prémière fois
+let VOTING_END = false;
 
 web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:7545'));
 abi = JSON.parse(
@@ -30,53 +30,111 @@ function voteForCandidate() {
   $('#btn-voter').attr('disabled', 'true');
   candidateName = $('#candidate').val();
   isValid = contractInstance.validCandidate.call(candidateName);
-  if (isValid) {
-    contractInstance.voteForCandidate(
-      candidateName,
-      { from: web3.eth.accounts[0] },
-      function() {
-        let div_id = candidates[candidateName];
-        $('#' + div_id).html(
-          contractInstance.totalVotesFor.call(candidateName).toString()
-        );
-        const Toast = Swal.mixin({
-          toast: true,
-          position: 'top-end',
-          showConfirmButton: false,
-          timer: 3000
-        });
+  let oldHeadNode = HEAD_NODE;
+  // Set HEAD NODE for every vote
+  setHeadNone(() => {
+    if (oldHeadNode != HEAD_NODE) {
+      console.log('HEAD NODE CHANGED TO ' + HEAD_NODE);
+    }
+    if (isValid) {
+      contractInstance.voteForCandidate(
+        candidateName,
+        { from: web3.eth.accounts[HEAD_NODE] },
+        function() {
+          let div_id = candidates[candidateName];
+          $('#' + div_id).html(
+            contractInstance.totalVotesFor.call(candidateName).toString()
+          );
+          const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+          });
 
-        Toast.fire({
-          type: 'success',
-          title: `${candidateName} a reçu le vote avec succé`
-        });
-      }
-    );
-  } else {
-    Swal.fire({
-      type: 'error',
-      title: 'Erreur...',
-      text: `${candidateName} n'est pas un candidat valide!`,
-      confirmButtonText: '<i class="far fa-window-close"></i> Fermer'
-    });
+          Toast.fire({
+            type: 'success',
+            title: `${candidateName} a reçu le vote avec succé`
+          });
+        }
+      );
+    } else {
+      Swal.fire({
+        type: 'error',
+        title: 'Erreur...',
+        text: `${candidateName} n'est pas un candidat valide!`,
+        confirmButtonText: '<i class="far fa-window-close"></i> Fermer'
+      });
+    }
+    // Re-enable voting button
+    $('#btn-voter').removeAttr('disabled');
+  });
+}
+
+// Set Head node dynamically
+function setHeadNone(callback) {
+  web3.eth.getAccounts((error, accounts) => {
+    if (accounts) {
+      let maxBalance = 0;
+      // Retrieve HEAD NODE balance
+      web3.eth.getBalance(web3.eth.accounts[HEAD_NODE], function(error, wei) {
+        if (!error) {
+          currentBalance = web3.fromWei(wei, 'ether');
+          maxBalance = 0;
+
+          // Change HEAD NODE dynamically in case of minimal power
+          if (currentBalance < MINIMAL_POWER) {
+            
+            // If HEAD_NODE will not be changed, this means that it's the end
+            let changed = false;
+            for (let i = 1; i < accounts.length; i++) {
+              web3.eth.getBalance(web3.eth.accounts[i], function(error, wei) {
+                if (!error) {
+                  var balance = web3.fromWei(wei, 'ether').toString();
+                  if (maxBalance < balance && balance > MINIMAL_POWER) {
+                    HEAD_NODE = i;
+                    maxBalance = balance;
+                    console.log("HEAD_NODE: " + HEAD_NODE)
+                    // When chaning HEAD NODE, it means there is at least one more node which can be a HEAD one
+                    changed = true;
+                  }
+                }
+              });
+            }
+          }
+        }
+      });
+    }
+  });
+  callback();
+}
+
+function fetchCandidatesStatistics() {
+  candidateNames = Object.keys(candidates);
+  for (var i = 0; i < candidateNames.length; i++) {
+    let name = candidateNames[i];
+    let val = contractInstance.totalVotesFor.call(name).toString();
+    $('#' + candidates[name]).html(val);
   }
-  // Re-enable voting button
-  $('#btn-voter').removeAttr('disabled');
+  return true;
 }
 
 $(document).ready(function() {
-    // La balance du premier compte
-    web3.eth.getBalance(web3.eth.accounts[0], function (error, wei) {
-        if (!error) {
-            var balance = web3.fromWei(wei, 'ether').toString();
-            console.log(balance < MINIMAL_POWER);
-            console.log(balance - MINIMAL_POWER)
-        }
-    });
-    candidateNames = Object.keys(candidates);
-    for (var i = 0; i < candidateNames.length; i++) {
-        let name = candidateNames[i];
-        let val = contractInstance.totalVotesFor.call(name).toString();
-        $('#' + candidates[name]).html(val);
+  // La balance du premier compte
+  web3.eth.getBalance(web3.eth.accounts[HEAD_NODE], function(error, wei) {
+    if (!error) {
+      var balance = web3.fromWei(wei, 'ether').toString();
+      if (balance < MINIMAL_POWER) {
+        let oldHeadNode = HEAD_NODE;
+        setHeadNone(() => {
+          if (oldHeadNode != HEAD_NODE) {
+            console.log('HEAD NODE CHANGED TO ' + HEAD_NODE);
+          }
+          fetchCandidatesStatistics();
+        });
+      } else {
+        fetchCandidatesStatistics();
+      }
     }
+  });
 });
