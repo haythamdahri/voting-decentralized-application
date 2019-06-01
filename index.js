@@ -1,4 +1,3 @@
-
 const MINIMAL_POWER = 99.97; // 5 Ethereum
 let HEAD_NODE = 0; // Le noeud maitre => 0 pour la prémière fois
 let VOTING_END = false;
@@ -86,7 +85,6 @@ function setHeadNone(callback) {
 
           // Change HEAD NODE dynamically in case of minimal power
           if (currentBalance < MINIMAL_POWER) {
-            
             // If HEAD_NODE will not be changed, this means that it's the end
             let changed = false;
             for (let i = 1; i < accounts.length; i++) {
@@ -96,7 +94,7 @@ function setHeadNone(callback) {
                   if (maxBalance < balance && balance > MINIMAL_POWER) {
                     HEAD_NODE = i;
                     maxBalance = balance;
-                    console.log("HEAD_NODE: " + HEAD_NODE)
+                    console.log('HEAD_NODE: ' + HEAD_NODE);
                     // When chaning HEAD NODE, it means there is at least one more node which can be a HEAD one
                     changed = true;
                   }
@@ -123,7 +121,6 @@ function fetchCandidatesStatistics() {
 
 // On deocument load function
 $(document).ready(function() {
-
   // Balance of HEAD_NONE account
   // web3.eth.getBalance(web3.eth.accounts[HEAD_NODE], function(error, wei) {
   //   if (!error) {
@@ -143,11 +140,25 @@ $(document).ready(function() {
   // });
 
   // Check cookie if user is connected
-  let email  = Cookies.get('email');
-  let username = Cookies.get('username')
+  let email = Cookies.get('email');
+  let username = Cookies.get('username');
   let password = Cookies.get('password');
-  
+  if (email == null || username == null || password == null) {
+    window.location.replace('/login.html');
+  } else {
+    $("body").show();
+  }
+
   console.log(email);
   console.log(username);
   console.log(password);
+});
+
+// On logout event
+$('#disconnect-link').on('click', () => {
+  // Remove all session cookies
+  Cookies.remove('email');
+  Cookies.remove('password');
+  Cookies.remove('username');
+  window.location.replace('/login.html');
 });
