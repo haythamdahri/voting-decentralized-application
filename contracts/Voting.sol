@@ -30,6 +30,11 @@ contract Voting {
     candidateList = candidateNames;
   }
 
+  // Retrieve candidates list
+  function getCandidateList() view public returns (bytes32[]) {
+    return candidateList;
+  } 
+
   // This function returns the total votes a candidate has received so far
   function totalVotesFor(bytes32 candidate) view public returns (uint8) {
     if (validCandidate(candidate) == false) revert();
@@ -45,7 +50,12 @@ contract Voting {
 
   // Mark voter that he had already voted
   function markVoter(bytes32 voterAddress) public {
-    votersList.push(address)
+   for(uint i = 0; i < votersList.length; i++) {
+      if (votersList[i] == voterAddress) {
+        revert();
+      }
+    }
+    votersList.push(voterAddress);
   }
 
   function validCandidate(bytes32 candidate) view public returns (bool) {

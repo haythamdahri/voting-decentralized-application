@@ -166,7 +166,7 @@ const votingAbiDefinition = [
 let votingContract = web3.eth.contract(votingAbiDefinition);
 // The contract address must be changed for each deployment
 votingContractInstance = votingContract.at(
-  '0x435d062b139d806e451c5899aa1892aa8a51f76e'
+  '0x1beb248ab60405b1f046855a92e90dd3f99afbbf'
 );
 
 /*

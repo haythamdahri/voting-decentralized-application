@@ -19,6 +19,8 @@ $ node
 > deployedContract.address
 > contractInstance = VotingContract.at(deployedContract.address)
 > contractInstance.voteForCandidate('Rama', {from: web3.eth.accounts[0]})
+> contractInstance.getCandidateList.call().toString()
 > contractInstance.markVoter('0sfd3ds5f13sd5f16s3d5fsdfwxwwxwx', {from: web3.eth.accounts[0]})
+> web3.toAscii("0x657468657265756d000000000000000000000000000000000000000000000000"); // Convert bytes32 to string
 > contractInstance.totalVotesFor.call('Rama').toString()
 ```
