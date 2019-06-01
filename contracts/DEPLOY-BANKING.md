@@ -15,7 +15,7 @@ $ node
 > abiDefinition = JSON.parse(compiledCode.contracts[':Banking'].interface)
 > BankingContract = web3.eth.contract(abiDefinition)
 > byteCode = compiledCode.contracts[':Banking'].bytecode
-> deployedContract = BankingContract.new({data: byteCode, from: web3.eth.accounts[0], gas: 4700000})
+> deployedContract = BankingContract.new(85000, {data: byteCode, from: web3.eth.accounts[0], gas: 4700000})
 > deployedContract.address
 > contractInstance = BankingContract.at(deployedContract.address)
 > contractInstance.deposit(78000, {from: web3.eth.accounts[0]})

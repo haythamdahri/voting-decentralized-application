@@ -1,4 +1,4 @@
-pragma solidity ^0.4.11;
+pragma solidity ^0.4.25;
 // We have to specify what version of compiler this code will compile with
 
 contract Voting {
@@ -7,41 +7,78 @@ contract Voting {
   an unsigned integer to store the vote count
   */
   
-  mapping (bytes32 => uint8) public votesReceived;
   
+  mapping (bytes32 => uint8) votesReceived;
+
+  /*
+  * Users accounts
+  * Each account has a un username in the index 0 and hashedpassword in the index 1 
+  */
+  struct User { // Struct
+        bytes32 email;
+        bytes32 hashedPassword;
+        bytes32 username;
+    }
+
+  User[] users;
+
   /* Solidity doesn't let you pass in an array of strings in the constructor (yet).
   We will use an array of bytes32 instead to store the list of candidates
   */
   
-  bytes32[] public candidateList;
+  bytes32[] candidateList;
 
+  /*
+  * After setting users, we cannot modify them
+  */
+  uint256 usersCount = 0;
+  
   /* This is the constructor which will be called once when you
   deploy the contract to the blockchain. When we deploy the contract,
   we will pass an array of candidates who will be contesting in the election
   */
-  function Voting(bytes32[] candidateNames) {
+  constructor(bytes32[] candidateNames) public {
     candidateList = candidateNames;
   }
 
   // This function returns the total votes a candidate has received so far
-  function totalVotesFor(bytes32 candidate) returns (uint8) {
-    if (validCandidate(candidate) == false) throw;
+  function totalVotesFor(bytes32 candidate) view public returns (uint8) {
+    if (validCandidate(candidate) == false) revert();
     return votesReceived[candidate];
   }
 
   // This function increments the vote count for the specified candidate. This
   // is equivalent to casting a vote
-  function voteForCandidate(bytes32 candidate) {
-    if (validCandidate(candidate) == false) throw;
+  function voteForCandidate(bytes32 candidate) public {
+    if (validCandidate(candidate) == false) revert();
     votesReceived[candidate] += 1;
   }
 
-  function validCandidate(bytes32 candidate) returns (bool) {
+  function validCandidate(bytes32 candidate) view public returns (bool) {
     for(uint i = 0; i < candidateList.length; i++) {
       if (candidateList[i] == candidate) {
         return true;
       }
     }
     return false;
+  }
+
+  function validUser(bytes32 email) view public returns (bool) {
+    for(uint i = 0; i < candidateList.length; i++) {
+      if( users[i].email == email ) {
+          return true;
+      }
+    }
+    return false;
+  }
+  
+  // Limited number of voters
+  function addUser(bytes32 e, bytes32 hp, bytes32 u) public {
+      if( usersCount < 20 ) {
+          users[usersCount].email = e;
+          users[usersCount].hashedPassword = hp;
+          users[usersCount].username = u;
+          usersCount++;
+      }
   }
 }
