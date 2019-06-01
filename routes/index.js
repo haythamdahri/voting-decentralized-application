@@ -21,10 +21,10 @@ router.get('/banking', (req, res) => {
   if (email == null || password == null) {
     res.redirect('/login');
   } else {
-    let balance = blockchain.contractInstance.getBalance((error, balance) => {
+    let balance = blockchain.bankingContractInstance.getBalance((error, balance) => {
       console.log('Balance: ' + balance);
       let user = new User('', email, password);
-      res.render('index', { user: user, amount: balance });
+      res.render('banking', { user: user, amount: balance });
     });
   }
 });
@@ -42,7 +42,7 @@ router.post('/banking', (req, res) => {
   if (email == null || password == null) {
     res.redirect('/login');
   } else {
-    blockchain.contractInstance.deposit(
+    blockchain.bankingContractInstance.deposit(
       Number(req.body.amount),
       {
         from: blockchain.web3.eth.accounts[0]

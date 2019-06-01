@@ -18,6 +18,7 @@ $ node
 > deployedContract = VotingContract.new(['Rama','Nick','Jose', 'Navin', 'Mike', 'Pamela', 'Thierry', 'Susanne', 'Matilda', 'Angelique', 'Marcelle'], {data: byteCode, from: web3.eth.accounts[0], gas: 4700000})
 > deployedContract.address
 > contractInstance = VotingContract.at(deployedContract.address)
-> contractInstance.addUser('haytham.dahri@gmail.com', 'hashedPassword', 'haytham', {from: web3.eth.accounts[0]})
-> contractInstance.validUser.call('Rama').toString()
+> contractInstance.voteForCandidate('Rama', {from: web3.eth.accounts[0]})
+> contractInstance.markVoter('0sfd3ds5f13sd5f16s3d5fsdfwxwwxwx', {from: web3.eth.accounts[0]})
+> contractInstance.totalVotesFor.call('Rama').toString()
 ```

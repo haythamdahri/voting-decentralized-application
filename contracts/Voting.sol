@@ -9,24 +9,13 @@ contract Voting {
   
   
   mapping (bytes32 => uint8) votesReceived;
-
-  /*
-  * Users accounts
-  * Each account has a un username in the index 0 and hashedpassword in the index 1 
-  */
-  struct User { // Struct
-        bytes32 email;
-        bytes32 hashedPassword;
-        bytes32 username;
-    }
-
-  User[] users;
-
+  
   /* Solidity doesn't let you pass in an array of strings in the constructor (yet).
   We will use an array of bytes32 instead to store the list of candidates
   */
   
   bytes32[] candidateList;
+  bytes32[] votersList;
 
   /*
   * After setting users, we cannot modify them
@@ -54,6 +43,11 @@ contract Voting {
     votesReceived[candidate] += 1;
   }
 
+  // Mark voter that he had already voted
+  function markVoter(bytes32 voterAddress) public {
+    votersList.push(address)
+  }
+
   function validCandidate(bytes32 candidate) view public returns (bool) {
     for(uint i = 0; i < candidateList.length; i++) {
       if (candidateList[i] == candidate) {
@@ -63,22 +57,5 @@ contract Voting {
     return false;
   }
 
-  function validUser(bytes32 email) view public returns (bool) {
-    for(uint i = 0; i < candidateList.length; i++) {
-      if( users[i].email == email ) {
-          return true;
-      }
-    }
-    return false;
-  }
   
-  // Limited number of voters
-  function addUser(bytes32 e, bytes32 hp, bytes32 u) public {
-      if( usersCount < 20 ) {
-          users[usersCount].email = e;
-          users[usersCount].hashedPassword = hp;
-          users[usersCount].username = u;
-          usersCount++;
-      }
-  }
 }
