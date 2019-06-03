@@ -5,14 +5,23 @@
   <div class="card-body">
     <h5 class="card-title">Saisir un montant à transferer</h5>
     <p class="card-text">
+    <% if( message.length > 0 ) { %>
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+          <i class="far fa-check-circle"></i> <%= message %>
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+          </button>
+      </div>
+    <% } %>
+
     <form method="POST" action="/banking">
     <div class="form-group">
         <label>Montant</label>
         <input type="number" class="form-control" name="amount" placeholder="Saisir le motant" required="true" />
     </div>
-    <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Envoyer</button>
+    <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-paper-plane"></i> Envoyer</button>
     </form>
     </p>
-    <small class="text-muted"><%= amount %> Dhs</small>
+    <small class="text-muted"><%= balance %> Dhs</small>
   </div>
 </div>

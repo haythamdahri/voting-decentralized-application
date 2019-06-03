@@ -2,58 +2,15 @@ const express = require('express');
 const Cookies = require('cookies');
 const sha512 = require('js-sha512');
 const User = require('../models/user');
-const blockchain = require('../services/blockchain');
+const {
+  bankingContractInstance,
+  votingContractInstance,
+  web3
+} = require('../services/blockchain');
 const router = express.Router();
 
 // Cookies keys
-let keys = ['email', 'password'];
-
-/*
- *  Handle GET request for => /
- */
-router.get('/banking', (req, res) => {
-  // Create a cookies object
-  var cookies = new Cookies(req, res, { keys: keys });
-
-  // Retrieve cookies
-  let email = cookies.get('email');
-  let password = cookies.get('password');
-  if (email == null || password == null) {
-    res.redirect('/login');
-  } else {
-    let balance = blockchain.bankingContractInstance.getBalance((error, balance) => {
-      console.log('Balance: ' + balance);
-      let user = new User('', email, password);
-      res.render('banking', { user: user, amount: balance });
-    });
-  }
-});
-
-/*
- *  Handle POST request for => /
- */
-router.post('/banking', (req, res) => {
-  // Create a cookies object
-  var cookies = new Cookies(req, res, { keys: keys });
-
-  // Retrieve cookies
-  let email = cookies.get('email');
-  let password = cookies.get('password');
-  if (email == null || password == null) {
-    res.redirect('/login');
-  } else {
-    blockchain.bankingContractInstance.deposit(
-      Number(req.body.amount),
-      {
-        from: blockchain.web3.eth.accounts[0]
-      },
-      (error, transaction) => {
-        console.log(transaction);
-        res.redirect('/banking');
-      }
-    );
-  }
-});
+let keys = ['address'];
 
 /*
  *  Handle GET request for => /login
@@ -63,38 +20,136 @@ router.get('/login', (req, res) => {
   // Create a cookies object
   var cookies = new Cookies(req, res, { keys: keys });
 
-  // Retrieve cookies
-  let email = cookies.get('email');
-  let password = cookies.get('password');
-  if (email != null && password != null) {
-    res.redirect('/');
+  // Add error message
+  if (req.query.error != undefined) {
+    console.log(req.params);
+    req.flash('loginError', "L'adresse utilisée n'est pas valide!");
   }
 
-  // Render login html page
-  let user = new User('', '', '');
-  res.render('login', { user: user });
+  // Retrieve cookies
+  let address = cookies.get('address', { signed: true });
+
+  if (address != undefined) {
+    res.redirect('/banking');
+  } else {
+    // Render login html page
+    res.render('login', { address: null, message: req.flash('loginError') });
+  }
 });
 
 /*
- *  Handle POST request for => /
+ *  Handle POST request for => /login
  */
-
 router.post('/login', (req, res) => {
   // Retrieve request data
-  console.log(req);
-  let email = req.body.email;
-  let password = req.body.password;
+  let address = req.body.address.toLowerCase();
 
   // Create a cookies object
   var cookies = new Cookies(req, res, { keys: keys });
 
-  // Set cookies + check user on the blockchain data + hash password before storing it
-  cookies.set('email', email);
-  var passwordHash = sha512.update(password);
-  passwordHash = passwordHash.hex();
-  cookies.set('password', passwordHash);
-  console.log(passwordHash);
+  // Chech if account exists
+  let found = false;
+  let accounts = web3.eth.accounts;
+  console.log('Address: ' + address);
+  for (let i = 0; i < accounts.length; i++) {
+    console.log(accounts[i]);
+    if (accounts[i] == address) {
+      // Set cookies + check address on the blockchain
+      cookies.set('address', address, { signed: true });
+      found = true;
+      break;
+    }
+  }
+  if (found) {
+    res.redirect('/banking');
+  } else {
+    res.redirect('/login?error');
+  }
+  // });
+});
+
+/*
+ *  Handle GET request for => /banking
+ */
+router.get('/banking', (req, res) => {
+  // Create a cookies object
+  var cookies = new Cookies(req, res, { keys: keys });
+
+  if (req.query.success != undefined) {
+    req.flash('successMessage', 'La transsaction est éffectuée avec succé!');
+  }
+
+  // Retrieve cookies
+  let address = cookies.get('address', { signed: true });
+
+  if (address == undefined) {
+    res.redirect('/login');
+  } else {
+    bankingContractInstance.getBalance((error, balance) => {
+      res.render('banking', {
+        address: address,
+        balance: balance,
+        message: req.flash('successMessage')
+      });
+    });
+  }
+});
+
+/*
+ *  Handle POST request for => /banking
+ */
+router.post('/banking', (req, res) => {
+  // Create a cookies object
+  var cookies = new Cookies(req, res, { keys: keys });
+
+  // Retrieve amount from request body
+  let amount = req.body.amount;
+
+  // Retrieve cookies
+  let address = cookies.get('address');
+
+  // Check if user is authenticated
+  if (address == undefined) {
+    res.redirect('/login');
+  } else {
+    bankingContractInstance.getBalance((error, balance) => {
+      if (Number(balance) > Number(amount)) {
+        bankingContractInstance.deposit(
+          Number(req.body.amount),
+          {
+            from: web3.eth.accounts[0]
+          },
+          (error, transaction) => {
+            res.redirect('/banking?success');
+          }
+        );
+      } else {
+        res.redirect('/banking');
+      }
+    });
+  }
+});
+
+/*
+ *  Handle GET request for => /logout
+ */
+router.get('/logout', (req, res) => {
+  // Redirect use to home
   res.redirect('/');
+});
+
+/*
+ *  Handle POST request for => /logout
+ */
+router.post('/logout', (req, res) => {
+  // Create a cookies object
+  var cookies = new Cookies(req, res, { keys: keys });
+
+  // Destroy session
+  cookies.set('address', { maxAge: Date.now() });
+
+  // redirect user to login page
+  res.redirect('/login');
 });
 
 // Export the router

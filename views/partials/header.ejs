@@ -15,12 +15,25 @@
                 <a class="nav-link" href="/"><i class="fas fa-home"></i> Acceuil <span
                         class="sr-only">(current)</span></a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/login"><i class="fas fa-sign-in-alt"></i> Connexion</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/logout"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
-            </li>
+            <% if( address == undefined ) { %>
+                <li class="nav-item">
+                    <a class="nav-link" href="/login"><i class="fas fa-sign-in-alt"></i> Connexion</a>
+                </li>
+            <% } else { %>
+                <li class="nav-item">
+                    <form method="POST" action="/banking">
+                        <a class="nav-link" href="/banking"><i class="fas fa-money-check-alt"></i> Banque</a>
+                    </form>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" style="cursor: pointer;"><i class="far fa-user"></i> <%= address %></a>
+                </li>
+                <li class="nav-item">
+                    <form method="POST" action="/logout" id="disconnect">
+                        <a class="nav-link" style="cursor: pointer;" onclick="document.getElementById('disconnect').submit()"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
+                    </form>
+                </li>
+            <% } %>
         </ul>
     </div>
 </nav>

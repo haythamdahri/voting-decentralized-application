@@ -58,6 +58,16 @@ contract Voting {
     votersList.push(voterAddress);
   }
 
+  // Check if user has been voted (returns true if already voted on a candidate)
+  function checkVoteStatus(bytes32 voterAddress) view public returns (bool) {
+    for(uint i = 0; i < votersList.length; i++) {
+      if (votersList[i] == voterAddress) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   function validCandidate(bytes32 candidate) view public returns (bool) {
     for(uint i = 0; i < candidateList.length; i++) {
       if (candidateList[i] == candidate) {
