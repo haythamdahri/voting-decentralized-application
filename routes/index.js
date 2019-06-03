@@ -3,16 +3,105 @@ const Cookies = require('cookies');
 const sha512 = require('js-sha512');
 const User = require('../models/user');
 const forEachAsync = require('foreachasync');
-const { toAscii, candidateStatistics } = require('../utils/functions');
+const {
+  toAscii,
+  candidateStatistics,
+  checkHeadNode
+} = require('../utils/functions');
 const {
   bankingContractInstance,
   votingContractInstance,
-  web3
+  web3,
+  getHeadNode,
+  setHeadNode,
+  getVotingStatus,
+  setVotingStatus
 } = require('../services/blockchain');
 const router = express.Router();
 
 // Cookies keys
 let keys = ['address'];
+
+/*
+ *  Handle GET request for => /
+ */
+router.get('/', (req, res) => {
+  // Create a cookies object
+  var cookies = new Cookies(req, res, { keys: keys });
+
+  // Retrieve cookies
+  let address = cookies.get('address', { signed: true });
+
+  if (address == undefined) {
+    res.redirect('/login');
+  } else {
+    // CheckHeadNode
+    checkHeadNode(web3).then(() => {
+      console.log(`HEAD NODE: ${getHeadNode()}`);
+
+      // Check if voting end
+      // Redirect user to the winner page if the vote has been ended
+      if (VOTING_END) {
+        res.redirect('/winner');
+        return;
+      }
+
+      // Retrieve candidats list from blockchain
+      let candidatesNamesHex = votingContractInstance.getCandidateList();
+
+      // Convert candidates hex code to string
+      let candidates = new Array();
+      let i = 0;
+
+      forEachAsync
+        .forEachAsync(candidatesNamesHex, item => {
+          candidateStatistics(votingContractInstance, item).then(statistics => {
+            candidates.push(statistics);
+          });
+        })
+        .then(() => {
+          // Send response to user
+          console.log(`HEAD NODE: ${getHeadNode()}`);
+          res.render('index', { address: address, candidates: candidates });
+        });
+    });
+  }
+});
+
+/*
+ *  Handle POST request for => /
+ */
+router.post('/', (req, res) => {
+  // Create a cookies object
+  var cookies = new Cookies(req, res, { keys: keys });
+
+  // Retrieve amount from request body
+  let amount = req.body.amount;
+
+  // Retrieve cookies
+  let address = cookies.get('address');
+
+  // Check if user is authenticated
+  if (address == undefined) {
+    res.redirect('/login');
+  } else {
+    bankingContractInstance.getBalance((error, balance) => {
+      if (Number(balance) > Number(amount)) {
+        bankingContractInstance.deposit(
+          Number(req.body.amount),
+          {
+            from: getHeadNode()
+          },
+          (error, transaction) => {
+            res.redirect('/banking?success');
+          }
+        );
+      } else {
+        res.redirect('/banking');
+      }
+    });
+  }
+});
 
 /*
  *  Handle GET request for => /login
@@ -114,21 +203,17 @@ router.post('/banking', (req, res) => {
   if (address == undefined) {
     res.redirect('/login');
   } else {
-    bankingContractInstance.getBalance((error, balance) => {
-      if (Number(balance) > Number(amount)) {
-        bankingContractInstance.deposit(
-          Number(req.body.amount),
-          {
-            from: web3.eth.accounts[0]
-          },
-          (error, transaction) => {
-            res.redirect('/banking?success');
-          }
-        );
-      } else {
-        res.redirect('/banking');
+    checkHeadNode(web3);
+    console.log('USED HEAD NODE: ' + getHeadNode());
+    bankingContractInstance.deposit(
+      Number(req.body.amount),
+      {
+        from: getHeadNode()
+      },
+      (error, transaction) => {
+        res.redirect('/banking?success');
       }
-    });
+    );
   }
 });
 
@@ -155,74 +240,6 @@ router.post('/logout', (req, res) => {
 });
 
 /*
- *  Handle GET request for => /
- */
-router.get('/', (req, res) => {
-  // Create a cookies object
-  var cookies = new Cookies(req, res, { keys: keys });
-
-  // Retrieve cookies
-  let address = cookies.get('address', { signed: true });
-
-  if (address == undefined) {
-    res.redirect('/login');
-  } else {
-    // Retrieve candidats list from blockchain
-    let candidatesNamesHex = votingContractInstance.getCandidateList();
-
-    // Convert candidates hex code to string
-    let candidates = new Array();
-    let i = 0;
-
-    forEachAsync
-      .forEachAsync(candidatesNamesHex, item => {
-        candidateStatistics(votingContractInstance, item).then(statistics => {
-          candidates.push(statistics);
-        });
-      })
-      .then(() => {
-        // Send response to user
-        res.render('index', { address: address, candidates: candidates });
-      });
-  }
-});
-
-/*
- *  Handle POST request for => /
- */
-router.post('/', (req, res) => {
-  // Create a cookies object
-  var cookies = new Cookies(req, res, { keys: keys });
-
-  // Retrieve amount from request body
-  let amount = req.body.amount;
-
-  // Retrieve cookies
-  let address = cookies.get('address');
-
-  // Check if user is authenticated
-  if (address == undefined) {
-    res.redirect('/login');
-  } else {
-    bankingContractInstance.getBalance((error, balance) => {
-      if (Number(balance) > Number(amount)) {
-        bankingContractInstance.deposit(
-          Number(req.body.amount),
-          {
-            from: web3.eth.accounts[0]
-          },
-          (error, transaction) => {
-            res.redirect('/banking?success');
-          }
-        );
-      } else {
-        res.redirect('/banking');
-      }
-    });
-  }
-});
-
-/*
  *  Handle GET request for => /winner
  */
 router.get('/winner', (req, res) => {
@@ -238,6 +255,14 @@ router.get('/winner', (req, res) => {
   } else {
     res.render('winner', { address: address });
   }
+});
+
+/*
+ *  Handle POST request for => /winner
+ */
+router.post('/winner', (req, res) => {
+  // Post request does not have meaning
+  res.redirect('/winner');
 });
 
 // Export the router

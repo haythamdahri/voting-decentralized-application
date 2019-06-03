@@ -1,3 +1,12 @@
+const forEachAsync = require('foreachasync');
+let {
+  getHeadNode,
+  setHeadNode,
+  getVotingStatus,
+  setVotingStatus,
+  MINIMAL_POWER
+} = require('../services/blockchain');
+
 const toAscii = hex => {
   var str = '';
   var i = 0,
@@ -21,10 +30,74 @@ const candidateStatistics = async (votingContractInstance, candidate) => {
   let votesCount = await votingContractInstance.totalVotesFor
     .call(candidateName)
     .toString();
-  return {candidateName: candidateName, votesCount: votesCount};
+  return { candidateName: candidateName, votesCount: votesCount };
+};
+
+const checkVotingEnd = accountsDetails => {
+  let end = false;
+  accountsDetails.forEach((accountDetails, index) => {
+    if (
+      accountDetails.balance < MINIMAL_POWER &&
+      index + 1 == accountDetails.length
+    ) {
+      VOTING_END = true;
+      return true;
+    }
+  });
+  return false;
+};
+
+const getAccountFromAddress = (accounts, address) => {
+  for (let i = 0; i < accounts.length; i++) {
+    if (accounts[i].toString() == address) {
+      return accounts[i];
+    }
+  }
+};
+
+const verifyHeadNode = async (web3, accountsDetails) => {
+  let headNodeAccount = getAccountFromAddress(web3.eth.accounts, getHeadNode());
+  let changed = false;
+  let newNode = false;
+  await web3.eth.getBalance(headNodeAccount, (error, wei) => {
+    if (!error) {
+      var balance = web3.fromWei(wei, 'ether').toString();
+      if (balance < MINIMAL_POWER) {
+        setHeadNode(accountsDetails[0].accountAddress.toString()); 
+      }
+    }
+  });
+};
+
+const checkHeadNode = async web3 => {
+  let accountsDetails = new Array();
+  let accounts = web3.eth.accounts;
+  forEachAsync.forEachAsync(accounts, async (account, index) => {
+    await web3.eth.getBalance(account, (error, wei) => {
+      if (!error) {
+        var balance = web3.fromWei(wei, 'ether').toString();
+        accountsDetails.push({
+          accountAddress: account,
+          balance: balance
+        });
+        accountsDetails.sort((accountDetails1, accountDetails2) =>
+          accountDetails1.balance > accountDetails2.balance ? 1 : -1
+        );
+        if (index == accounts.length - 1) {
+          console.log('Balance HEAD NODE: ' + accountsDetails[0].balance);
+          // First account which has more ethers will be as HEAD NODE
+          verifyHeadNode(web3, accountsDetails).then(() => {
+            // Check voting end if last iteration
+            checkVotingEnd(accountsDetails);
+          });
+        }
+      }
+    });
+  });
 };
 
 module.exports = {
   toAscii: toAscii,
-  candidateStatistics: candidateStatistics
+  candidateStatistics: candidateStatistics,
+  checkHeadNode: checkHeadNode
 };
