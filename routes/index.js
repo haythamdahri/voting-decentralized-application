@@ -182,17 +182,8 @@ router.get('/', (req, res) => {
       })
       .then(() => {
         // Send response to user
-        res.setHeader('Content-Type', 'application/json');
-        res.send(candidates);
+        res.render('index', { address: address, candidates: candidates });
       });
-
-    // candidatesNamesHex.forEach(candidate => {
-    //   candidateStatistics(votingContractInstance, candidate).then(
-    //     (statistics) => {
-    //       candidates.push(statistics);
-    //     }
-    //   )
-    // });
   }
 });
 
@@ -228,6 +219,24 @@ router.post('/', (req, res) => {
         res.redirect('/banking');
       }
     });
+  }
+});
+
+/*
+ *  Handle GET request for => /winner
+ */
+router.get('/winner', (req, res) => {
+  // Create a cookies object
+  var cookies = new Cookies(req, res, { keys: keys });
+
+  // Retrieve cookies
+  let address = cookies.get('address');
+
+  // Check if user is authenticated
+  if (address == undefined) {
+    res.redirect('/login');
+  } else {
+    res.render('winner', { address: address });
   }
 });
 
