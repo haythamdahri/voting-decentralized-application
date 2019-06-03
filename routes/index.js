@@ -2,6 +2,8 @@ const express = require('express');
 const Cookies = require('cookies');
 const sha512 = require('js-sha512');
 const User = require('../models/user');
+const forEachAsync = require('foreachasync');
+const { toAscii, candidateStatistics } = require('../utils/functions');
 const {
   bankingContractInstance,
   votingContractInstance,
@@ -150,6 +152,83 @@ router.post('/logout', (req, res) => {
 
   // redirect user to login page
   res.redirect('/login');
+});
+
+/*
+ *  Handle GET request for => /
+ */
+router.get('/', (req, res) => {
+  // Create a cookies object
+  var cookies = new Cookies(req, res, { keys: keys });
+
+  // Retrieve cookies
+  let address = cookies.get('address', { signed: true });
+
+  if (address == undefined) {
+    res.redirect('/login');
+  } else {
+    // Retrieve candidats list from blockchain
+    let candidatesNamesHex = votingContractInstance.getCandidateList();
+
+    // Convert candidates hex code to string
+    let candidates = new Array();
+    let i = 0;
+
+    forEachAsync
+      .forEachAsync(candidatesNamesHex, item => {
+        candidateStatistics(votingContractInstance, item).then(statistics => {
+          candidates.push(statistics);
+        });
+      })
+      .then(() => {
+        // Send response to user
+        res.setHeader('Content-Type', 'application/json');
+        res.send(candidates);
+      });
+
+    // candidatesNamesHex.forEach(candidate => {
+    //   candidateStatistics(votingContractInstance, candidate).then(
+    //     (statistics) => {
+    //       candidates.push(statistics);
+    //     }
+    //   )
+    // });
+  }
+});
+
+/*
+ *  Handle POST request for => /
+ */
+router.post('/', (req, res) => {
+  // Create a cookies object
+  var cookies = new Cookies(req, res, { keys: keys });
+
+  // Retrieve amount from request body
+  let amount = req.body.amount;
+
+  // Retrieve cookies
+  let address = cookies.get('address');
+
+  // Check if user is authenticated
+  if (address == undefined) {
+    res.redirect('/login');
+  } else {
+    bankingContractInstance.getBalance((error, balance) => {
+      if (Number(balance) > Number(amount)) {
+        bankingContractInstance.deposit(
+          Number(req.body.amount),
+          {
+            from: web3.eth.accounts[0]
+          },
+          (error, transaction) => {
+            res.redirect('/banking?success');
+          }
+        );
+      } else {
+        res.redirect('/banking');
+      }
+    });
+  }
 });
 
 // Export the router
