@@ -82,7 +82,7 @@ const bankingAbiDefinition = [
 let bankingContract = web3.eth.contract(bankingAbiDefinition);
 // The contract address must be changed for each deployment
 bankingContractInstance = bankingContract.at(
-  '0xd1db8fe69367a40b17b8dedaae838d4205edb7e7'
+  '0x388c70ccb540d658151cd278f1ddaf6a6d4f3a76'
 );
 
 // ------------------------- Voting contract -------------------------
@@ -215,7 +215,7 @@ const votingAbiDefinition = [
 let votingContract = web3.eth.contract(votingAbiDefinition);
 // The contract address must be changed for each deployment
 votingContractInstance = votingContract.at(
-  '0x388c70ccb540d658151cd278f1ddaf6a6d4f3a76'
+  '0xc3d5fc3af03a134a91c9587a3f662969322e0138'
 );
 
 // Set Head node

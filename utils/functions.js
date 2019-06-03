@@ -35,16 +35,18 @@ const candidateStatistics = async (votingContractInstance, candidate) => {
 
 const checkVotingEnd = accountsDetails => {
   let end = false;
+  let accountsCounter = 0;
   accountsDetails.forEach((accountDetails, index) => {
-    if (
-      accountDetails.balance < MINIMAL_POWER &&
-      index + 1 == accountDetails.length
-    ) {
-      VOTING_END = true;
-      return true;
+    if (accountDetails.balance < MINIMAL_POWER) {
+      accountsCounter += 1;
     }
   });
-  return false;
+  if (accountsCounter == accountsDetails.length) {
+    setVotingStatus(true);
+    return true;
+  } else {
+    return false;
+  }
 };
 
 const getAccountFromAddress = (accounts, address) => {
@@ -63,7 +65,7 @@ const verifyHeadNode = async (web3, accountsDetails) => {
     if (!error) {
       var balance = web3.fromWei(wei, 'ether').toString();
       if (balance < MINIMAL_POWER) {
-        setHeadNode(accountsDetails[0].accountAddress.toString()); 
+        setHeadNode(accountsDetails[0].accountAddress.toString());
       }
     }
   });

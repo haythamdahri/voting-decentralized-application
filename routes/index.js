@@ -35,13 +35,14 @@ router.get('/', (req, res) => {
   if (address == undefined) {
     res.redirect('/login');
   } else {
+    console.log(getVotingStatus());
     // CheckHeadNode
     checkHeadNode(web3).then(() => {
       console.log(`HEAD NODE: ${getHeadNode()}`);
 
       // Check if voting end
       // Redirect user to the winner page if the vote has been ended
-      if (VOTING_END) {
+      if (getVotingStatus()) {
         res.redirect('/winner');
         return;
       }
