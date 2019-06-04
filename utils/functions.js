@@ -6,6 +6,7 @@ let {
   setVotingStatus,
   MINIMAL_POWER
 } = require('../services/blockchain');
+const Jimp = require('jimp');
 
 const toAscii = hex => {
   var str = '';
@@ -98,8 +99,28 @@ const checkHeadNode = async web3 => {
   });
 };
 
+let drowWinnerImage = async winnerName => {
+  let fileName = 'public/images/golden-laurel-wreath.jpg'; //a 1024px x 1024px backgroound image
+  let exportedFileName = 'public/images/winner-image.jpg';
+  let winnerFileName = '/images/winner-image.jpg';
+
+  await Jimp.read(fileName)
+    .then(function(image) {
+      loadedImage = image;
+      return Jimp.loadFont(Jimp.FONT_SANS_64_BLACK);
+    })
+    .then(function(font) {
+      loadedImage.print(font, 267, 275, winnerName).write(exportedFileName);
+    })
+    .catch(function(err) {
+      console.error(err);
+    });
+  return winnerFileName;
+};
+
 module.exports = {
   toAscii: toAscii,
   candidateStatistics: candidateStatistics,
-  checkHeadNode: checkHeadNode
+  checkHeadNode: checkHeadNode,
+  drowWinnerImage: drowWinnerImage
 };

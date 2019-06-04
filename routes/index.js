@@ -6,7 +6,8 @@ const forEachAsync = require('foreachasync');
 const {
   toAscii,
   candidateStatistics,
-  checkHeadNode
+  checkHeadNode,
+  drowWinnerImage
 } = require('../utils/functions');
 const {
   bankingContractInstance,
@@ -18,6 +19,7 @@ const {
   setVotingStatus
 } = require('../services/blockchain');
 const router = express.Router();
+
 
 // Cookies keys
 let keys = ['address'];
@@ -89,7 +91,7 @@ router.post('/', (req, res) => {
   let candidate = req.body.candidate;
 
   // Retrieve cookies
-  let address = cookies.get('address');
+  let address = cookies.get('address', { signed: true });
 
   // Check if user is authenticated
   if (address == undefined) {
@@ -217,6 +219,7 @@ router.get('/banking', (req, res) => {
  *  Handle POST request for => /banking
  */
 router.post('/banking', (req, res) => {
+
   // Create a cookies object
   var cookies = new Cookies(req, res, { keys: keys });
 
@@ -224,14 +227,13 @@ router.post('/banking', (req, res) => {
   let amount = req.body.amount;
 
   // Retrieve cookies
-  let address = cookies.get('address');
+  let address = cookies.get('address', { signed: true });
 
   // Check if user is authenticated
   if (address == undefined) {
     res.redirect('/login');
   } else {
     checkHeadNode(web3);
-    console.log('USED HEAD NODE: ' + getHeadNode());
     bankingContractInstance.deposit(
       Number(req.body.amount),
       {
@@ -274,7 +276,7 @@ router.get('/winner', (req, res) => {
   var cookies = new Cookies(req, res, { keys: keys });
 
   // Retrieve cookies
-  let address = cookies.get('address');
+  let address = cookies.get('address', { signed: true });
 
   // Check if user is authenticated
   if (address == undefined) {
@@ -291,10 +293,13 @@ router.get('/winner', (req, res) => {
       .call(winnerName)
       .toString();
 
-    res.render('winner', {
-      address: address,
-      winnerName: winnerName,
-      votesCount: votesCount
+    drowWinnerImage(winnerName).then((winnerFileName) => {
+      res.render('winner', {
+        address: address,
+        winnerName: winnerName,
+        votesCount: votesCount,
+        winnerFileName: winnerFileName
+      });
     });
   }
 });
