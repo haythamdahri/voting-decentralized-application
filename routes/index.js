@@ -62,8 +62,17 @@ router.get('/', (req, res) => {
         })
         .then(() => {
           // Send response to user
-          console.log(`HEAD NODE: ${getHeadNode()}`);
-          res.render('index', { address: address, candidates: candidates });
+          context = { address: address, candidates: candidates };
+          let voted = req.query.voted;
+          let success = req.query.success;
+          context['voted'] =
+            voted != undefined ? 'Vous avez déja voté' : undefined;
+          context['success'] =
+            success != undefined
+              ? 'Votre vote est ajouté avec succé!'
+              : undefined;
+
+          res.render('index', context);
         });
     });
   }
@@ -77,7 +86,7 @@ router.post('/', (req, res) => {
   var cookies = new Cookies(req, res, { keys: keys });
 
   // Retrieve amount from request body
-  let amount = req.body.amount;
+  let candidate = req.body.candidate;
 
   // Retrieve cookies
   let address = cookies.get('address');
@@ -86,19 +95,36 @@ router.post('/', (req, res) => {
   if (address == undefined) {
     res.redirect('/login');
   } else {
-    bankingContractInstance.getBalance((error, balance) => {
-      if (Number(balance) > Number(amount)) {
-        bankingContractInstance.deposit(
-          Number(req.body.amount),
-          {
-            from: getHeadNode()
-          },
-          (error, transaction) => {
-            res.redirect('/banking?success');
+    checkHeadNode(web3).then(() => {
+      // Check if voting end
+      // Redirect user to the winner page if the vote has been ended
+      if (getVotingStatus()) {
+        res.redirect('/winner');
+        return;
+      }
+
+      // Check if voter has been voted
+      let isVoted = votingContractInstance.checkVoteStatus
+        .call(address.toString())
+        .toString();
+      if (JSON.parse(isVoted)) {
+        res.redirect('/?voted');
+      } else {
+        // Add user vote
+        // Mark the user
+        votingContractInstance.voteForCandidate(
+          candidate,
+          { from: getHeadNode() },
+          () => {
+            votingContractInstance.markVoter(
+              address.toString(),
+              { from: getHeadNode() },
+              () => {
+                res.redirect('/?success');
+              }
+            );
           }
         );
-      } else {
-        res.redirect('/banking');
       }
     });
   }
@@ -153,7 +179,7 @@ router.post('/login', (req, res) => {
     }
   }
   if (found) {
-    res.redirect('/banking');
+    res.redirect('/');
   } else {
     res.redirect('/login?error');
   }
@@ -254,7 +280,22 @@ router.get('/winner', (req, res) => {
   if (address == undefined) {
     res.redirect('/login');
   } else {
-    res.render('winner', { address: address });
+    if (!getVotingStatus()) {
+      res.redirect('/');
+      return;
+    }
+
+    // Retrieve winner name and number of votes
+    let winnerName = toAscii(votingContractInstance.winner.call().toString());
+    let votesCount = votingContractInstance.totalVotesFor
+      .call(winnerName)
+      .toString();
+
+    res.render('winner', {
+      address: address,
+      winnerName: winnerName,
+      votesCount: votesCount
+    });
   }
 });
 

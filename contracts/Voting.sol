@@ -41,6 +41,22 @@ contract Voting {
     return votesReceived[candidate];
   }
 
+  // This function returns name of the winner
+  function winner() view public returns (bytes32) {
+    bytes32 winnerName = candidateList[0]; // Temprory, first candidate as winner
+    uint8 winnerVotes = votesReceived[winnerName];
+    
+    for (uint i = 1; i < candidateList.length; i++) {
+      bytes32 candidateName = candidateList[i];
+      uint8 receivedVotes = votesReceived[candidateName];
+      if( receivedVotes > winnerVotes ) {
+        winnerVotes = receivedVotes;
+        winnerName = candidateName;
+      }
+    }
+    return winnerName;
+  }
+
   // This function increments the vote count for the specified candidate. This
   // is equivalent to casting a vote
   function voteForCandidate(bytes32 candidate) public {
