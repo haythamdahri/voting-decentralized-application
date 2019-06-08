@@ -1,7 +1,7 @@
 const Web3 = require('web3');
 const fs = require('fs');
 const solc = require('solc');
-const MINIMAL_POWER = 99.98; // Minimal balance must be at least 5 Ethers
+const MINIMAL_POWER = 99.95; // Minimal balance must be at least 5(99.95 for test) Ethers
 let VOTING_END = false; // If all accounts have ehers less than MINIMAL_POWER, so that we end the voting
 let HEAD_NODE = '';
 
@@ -82,7 +82,7 @@ const bankingAbiDefinition = [
 let bankingContract = web3.eth.contract(bankingAbiDefinition);
 // The contract address must be changed for each deployment
 bankingContractInstance = bankingContract.at(
-  '0x388c70ccb540d658151cd278f1ddaf6a6d4f3a76'
+  '0x7f823f65b82d7008d8bafbe02af7886ef06862a3'
 );
 
 // ------------------------- Voting contract -------------------------

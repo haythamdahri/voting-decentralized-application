@@ -16,11 +16,6 @@ contract Voting {
   
   bytes32[] candidateList;
   bytes32[] votersList;
-
-  /*
-  * After setting users, we cannot modify them
-  */
-  uint256 usersCount = 0;
   
   /* This is the constructor which will be called once when you
   deploy the contract to the blockchain. When we deploy the contract,
