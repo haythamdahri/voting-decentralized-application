@@ -196,7 +196,7 @@ router.get('/banking', (req, res) => {
   var cookies = new Cookies(req, res, { keys: keys });
 
   if (req.query.success != undefined) {
-    req.flash('successMessage', 'La transsaction est éffectuée avec succé!');
+    req.flash('successMessage', 'La transaction est éffectuée avec succé!');
   }
 
   // Retrieve cookies

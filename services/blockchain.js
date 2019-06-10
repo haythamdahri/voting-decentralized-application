@@ -82,7 +82,7 @@ const bankingAbiDefinition = [
 let bankingContract = web3.eth.contract(bankingAbiDefinition);
 // The contract address must be changed for each deployment
 bankingContractInstance = bankingContract.at(
-  '0x7f823f65b82d7008d8bafbe02af7886ef06862a3'
+  '0x388c70ccb540d658151cd278f1ddaf6a6d4f3a76'
 );
 
 // ------------------------- Voting contract -------------------------
